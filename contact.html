@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — PhotoGallery</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">PhotoGallery</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+          <li class="nav-item"><a class="nav-link active" href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="py-5">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <h2 class="mb-3">Get in touch</h2>
+          <p class="text-muted">This contact form </p>
+
+          <div id="alertPlaceholder"></div>
+
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <form id="contactForm" novalidate>
+                <div class="mb-3">
+                  <label for="name" class="form-label">Your name</label>
+                  <input type="text" class="form-control" id="name" placeholder="Your full name" required>
+                  <div class="invalid-feedback">Please enter your name.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email address</label>
+                  <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                  <div class="invalid-feedback">Please enter a valid email.</div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="message" class="form-label">Message</label>
+                  <textarea id="message" class="form-control" rows="5" placeholder="Write your message..." required></textarea>
+                  <div class="invalid-feedback">Please write a short message.</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                  <small class="text-muted">We will not share your email.</small>
+                  <div>
+                    <button type="submit" class="btn btn-primary">Send message</button>
+                    <button type="button" id="clearStorage" class="btn btn-outline-secondary ms-2">Clear saved messages</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5>Saved submissions </h5>
+          <div id="savedList" class="list-group mt-2">
+            <!-- saved items appear here -->
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-dark text-white py-3 mt-4">
+    <div class="container text-center small">&copy; PhotoGallery — College project</div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // contact page script
+    (function(){
+      const form = document.getElementById('contactForm');
+      const alertPlaceholder = document.getElementById('alertPlaceholder');
+      const savedList = document.getElementById('savedList');
+      const clearBtn = document.getElementById('clearStorage');
+
+      function showAlert(message, type='success'){
+        alertPlaceholder.innerHTML = `\n          <div class="alert alert-${type} alert-dismissible fade show" role="alert">\n            ${message}\n            <button type=\"button\" class=\"btn-close\" data-bs-dismiss=\"alert\"></button>\n          </div>`;
+      }
+
+      function loadSaved(){
+        const items = JSON.parse(localStorage.getItem('photoGalleryContacts') || '[]');
+        savedList.innerHTML = '';
+        if(items.length === 0){
+          savedList.innerHTML = '<div class="text-muted">No saved messages yet.</div>';
+          return;
+        }
+        items.slice().reverse().forEach((it, idx)=>{
+          const el = document.createElement('div');
+          el.className = 'list-group-item';
+          el.innerHTML = `<div class="d-flex w-100 justify-content-between"><strong>${escapeHtml(it.name)}</strong><small class="text-muted">${escapeHtml(it.email)}</small></div><p class="mb-1">${escapeHtml(it.message)}</p><small class="text-muted">${new Date(it.time).toLocaleString()}</small>`;
+          savedList.appendChild(el);
+        });
+      }
+
+      function escapeHtml(text){
+        if(!text) return '';
+        return text.replace(/[&<>\"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
+      }
+
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        // simple validation
+        const name = form.querySelector('#name');
+        const email = form.querySelector('#email');
+        const message = form.querySelector('#message');
+        let valid = true;
+
+        [name, email, message].forEach(inp => {
+          if(!inp.value.trim()){
+            inp.classList.add('is-invalid');
+            valid = false;
+          } else {
+            inp.classList.remove('is-invalid');
+          }
+        });
+
+        // basic email pattern
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!emailPattern.test(email.value.trim())){
+          email.classList.add('is-invalid');
+          valid = false;
+        }
+
+        if(!valid) return;
+
+        
+        const record = { name: name.value.trim(), email: email.value.trim(), message: message.value.trim(), time: Date.now() };
+        const arr = JSON.parse(localStorage.getItem('photoGalleryContacts') || '[]');
+        arr.push(record);
+        try{ localStorage.setItem('photoGalleryContacts', JSON.stringify(arr)); }
+        catch(err){ console.error('Storage error', err); }
+
+        showAlert('Thanks! Your message was saved locally for demo purposes.');
+        form.reset();
+        loadSaved();
+      });
+
+      clearBtn.addEventListener('click', function(){
+        if(confirm('Clear all saved messages from localStorage?')){
+          localStorage.removeItem('photoGalleryContacts');
+          loadSaved();
+          showAlert('Saved messages cleared.', 'info');
+        }
+      });
+
+      // init
+      loadSaved();
+    })();
+  </script>
+</body>
+</html>

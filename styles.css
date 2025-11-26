@@ -1,0 +1,36 @@
+/* styles.css - keep simple and readable */
+
+body {
+  background: #f8f9fa;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.card-img-top {
+  height: 220px;
+  object-fit: cover;
+}
+
+/* hover effect */
+.photo-card:hover .card-img-top {
+  transform: scale(1.03);
+  transition: transform 0.25s ease;
+}
+
+/* subtle shadow */
+.photo-card {
+  border: 0;
+  box-shadow: 0 6px 18px rgba(20,20,20,0.05);
+  overflow: hidden;
+}
+
+/* center the no-results message */
+#noResults {
+  min-height: 120px;
+}
+
+/* modal image fit */
+.object-fit-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
